@@ -23,6 +23,7 @@
                 <li><a href="#destinations" class="nav-link">Destinations</a></li>
                 <li><a href="#features" class="nav-link">Why Us</a></li>
                 <li><a href="#contact" class="nav-link">Contact</a></li>
+                <li id="authNavItem"><a href="#" class="nav-link" id="authNavLink" onclick="openAuthModal()">Login</a></li>
             </ul>
             <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
                 <span class="hamburger"></span>
@@ -54,57 +55,8 @@
                 <h2 class="section-title">Popular Destinations</h2>
                 <p class="section-subtitle">Handpicked locations for your perfect getaway</p>
             </div>
-            <div class="destinations-grid">
-                <div class="destination-card">
-                    <div class="card-image">
-                        <img src="assets/dest-1.jpg" alt="Santorini, Greece">
-                        <div class="card-overlay">
-                            <div class="card-content">
-                                <h3 class="card-title">Santorini, Greece</h3>
-                                <p class="card-description">Experience the iconic white-washed buildings and stunning sunsets</p>
-                                <a href="#" class="card-link">Explore More →</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-info">
-                        <span class="card-tag">🌅 Romantic</span>
-                        <span class="card-rating">★ 4.9</span>
-                    </div>
-                </div>
-
-                <div class="destination-card">
-                    <div class="card-image">
-                        <img src="assets/dest-2.jpg" alt="Kyoto, Japan">
-                        <div class="card-overlay">
-                            <div class="card-content">
-                                <h3 class="card-title">Kyoto, Japan</h3>
-                                <p class="card-description">Immerse yourself in ancient temples and cherry blossom beauty</p>
-                                <a href="#" class="card-link">Explore More →</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-info">
-                        <span class="card-tag">🏯 Cultural</span>
-                        <span class="card-rating">★ 4.8</span>
-                    </div>
-                </div>
-
-                <div class="destination-card">
-                    <div class="card-image">
-                        <img src="assets/dest-3.jpg" alt="African Safari">
-                        <div class="card-overlay">
-                            <div class="card-content">
-                                <h3 class="card-title">African Safari</h3>
-                                <p class="card-description">Witness majestic wildlife in their natural habitat</p>
-                                <a href="#" class="card-link">Explore More →</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-info">
-                        <span class="card-tag">🦁 Adventure</span>
-                        <span class="card-rating">★ 5.0</span>
-                    </div>
-                </div>
+            <div class="destinations-grid" id="destinationsGrid">
+                <!-- Populated dynamically from API -->
             </div>
         </div>
     </section>
@@ -141,11 +93,28 @@
         </div>
     </section>
 
-    <!-- Newsletter Section -->
+    <!-- Contact & Newsletter Section -->
     <section class="newsletter" id="contact">
         <div class="container">
             <div class="newsletter-content">
-                <h2 class="newsletter-title">Start Your Journey Today</h2>
+                <h2 class="newsletter-title">Get In Touch</h2>
+                <p class="newsletter-subtitle">Have questions? Send us a message or subscribe for travel deals</p>
+
+                <!-- Contact Form -->
+                <form class="contact-form" id="contactForm">
+                    <div class="form-row">
+                        <input type="text" placeholder="Your Name" class="form-input" id="contactName" required>
+                        <input type="email" placeholder="Your Email" class="form-input" id="contactEmail" required>
+                    </div>
+                    <textarea placeholder="Your Message" class="form-input form-textarea" id="contactMessage" required></textarea>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+
+                <div class="section-divider">
+                    <span>OR</span>
+                </div>
+
+                <!-- Newsletter Form -->
                 <p class="newsletter-subtitle">Subscribe to get exclusive travel deals and inspiration</p>
                 <form class="newsletter-form" id="newsletterForm">
                     <input type="email" placeholder="Enter your email" class="newsletter-input" required>
@@ -154,6 +123,60 @@
             </div>
         </div>
     </section>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeBookingModal()">&times;</button>
+            <h2 class="modal-title">Book Your Trip</h2>
+            <p class="modal-destination" id="bookingDestName"></p>
+            <form id="bookingForm">
+                <input type="hidden" id="bookingDestId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bookingDate">Travel Date</label>
+                        <input type="date" class="form-input" id="bookingDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingGuests">Guests</label>
+                        <input type="number" class="form-input" id="bookingGuests" min="1" max="20" value="1" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="bookingNotes">Special Requests</label>
+                    <textarea class="form-input form-textarea" id="bookingNotes" placeholder="Any special requests..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+            <h2 class="modal-title" id="authModalTitle">Login</h2>
+            <form id="authForm">
+                <div class="form-group" id="authNameGroup" style="display:none;">
+                    <label for="authName">Name</label>
+                    <input type="text" class="form-input" id="authName" placeholder="Your name">
+                </div>
+                <div class="form-group">
+                    <label for="authEmail">Email</label>
+                    <input type="email" class="form-input" id="authEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Password</label>
+                    <input type="password" class="form-input" id="authPassword" placeholder="Your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="authSubmitBtn">Login</button>
+            </form>
+            <p class="auth-toggle">
+                <span id="authToggleText">Don't have an account?</span>
+                <a href="#" id="authToggleLink" onclick="toggleAuthMode(event)">Register</a>
+            </p>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
