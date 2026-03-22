@@ -5,6 +5,46 @@ let authToken = localStorage.getItem('atlas_token');
 let currentUser = JSON.parse(localStorage.getItem('atlas_user') || 'null');
 let isLoginMode = true;
 
+function clearAuthSession() {
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('atlas_token');
+    localStorage.removeItem('atlas_user');
+    updateAuthUI();
+}
+
+function handleUnauthorizedResponse(message = 'Your session expired. Please login again.') {
+    clearAuthSession();
+    showNotification(message, 'error');
+    openAuthModal();
+}
+
+async function validateStoredSession() {
+    if (!authToken) return;
+
+    try {
+        const res = await fetch('/api/auth/profile', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (!res.ok) {
+            handleUnauthorizedResponse();
+            return;
+        }
+
+        const data = await res.json();
+        if (data.user) {
+            currentUser = data.user;
+            localStorage.setItem('atlas_user', JSON.stringify(data.user));
+            updateAuthUI();
+        }
+    } catch (err) {
+        // Keep existing token during temporary network issues.
+    }
+}
+
 // ===========================
 // MOBILE NAVIGATION TOGGLE
 // ===========================
@@ -306,6 +346,8 @@ bookingForm.addEventListener('submit', async (e) => {
             showNotification('Booking confirmed! We will be in touch.', 'success');
             closeBookingModal();
             bookingForm.reset();
+        } else if (res.status === 401) {
+            handleUnauthorizedResponse('Authentication error. Please login again.');
         } else {
             showNotification(data.error || 'Booking failed', 'error');
         }
@@ -392,11 +434,7 @@ function updateAuthUI() {
 }
 
 function logout() {
-    authToken = null;
-    currentUser = null;
-    localStorage.removeItem('atlas_token');
-    localStorage.removeItem('atlas_user');
-    updateAuthUI();
+    clearAuthSession();
     showNotification('Logged out successfully', 'success');
 }
 
@@ -514,4 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update auth UI
     updateAuthUI();
+
+    // Validate and refresh session state if a token already exists.
+    validateStoredSession();
 });
