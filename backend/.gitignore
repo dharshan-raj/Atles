@@ -1,0 +1,7 @@
+node_modules/
+db/atlas.db
+db/atlas.db-shm
+db/atlas.db-wal
+db/*.db-shm
+db/*.db-wal
+.env
