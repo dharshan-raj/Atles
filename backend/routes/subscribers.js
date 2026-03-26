@@ -32,6 +32,31 @@ router.get('/', authenticate, requireAdmin, (req, res) => {
   res.json({ subscribers });
 });
 
+// Update subscriber email (admin)
+router.put('/:id', authenticate, requireAdmin, (req, res) => {
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+
+  if (!EMAIL_REGEX.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+
+  const db = getDb();
+  const existing = db.prepare('SELECT id FROM subscribers WHERE id = ?').get(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ error: 'Subscriber not found' });
+  }
+
+  const duplicate = db.prepare('SELECT id FROM subscribers WHERE email = ? AND id != ?').get(email, req.params.id);
+  if (duplicate) {
+    return res.status(409).json({ error: 'Email already subscribed' });
+  }
+
+  db.prepare('UPDATE subscribers SET email = ? WHERE id = ?').run(email, req.params.id);
+  const subscriber = db.prepare('SELECT * FROM subscribers WHERE id = ?').get(req.params.id);
+
+  res.json({ message: 'Subscriber updated', subscriber });
+});
+
 // Unsubscribe (admin)
 router.delete('/:id', authenticate, requireAdmin, (req, res) => {
   const existing = getDb().prepare('SELECT id FROM subscribers WHERE id = ?').get(req.params.id);

@@ -54,6 +54,26 @@ router.get('/', authenticate, (req, res) => {
   res.json({ bookings });
 });
 
+// Get single booking (authenticated)
+router.get('/:id', authenticate, (req, res) => {
+  const booking = getDb().prepare(`
+    SELECT b.*, d.name as destination_name, d.image as destination_image
+    FROM bookings b
+    JOIN destinations d ON b.destination_id = d.id
+    WHERE b.id = ?
+  `).get(req.params.id);
+
+  if (!booking) {
+    return res.status(404).json({ error: 'Booking not found' });
+  }
+
+  if (req.user.role !== 'admin' && booking.user_id !== req.user.id) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  res.json({ booking });
+});
+
 // Get all bookings (admin)
 router.get('/all', authenticate, requireAdmin, (req, res) => {
   const bookings = getDb().prepare(`
@@ -83,6 +103,22 @@ router.put('/:id/status', authenticate, requireAdmin, (req, res) => {
   getDb().prepare('UPDATE bookings SET status = ? WHERE id = ?').run(status, req.params.id);
 
   res.json({ message: `Booking ${status}` });
+});
+
+// Delete booking (authenticated owner or admin)
+router.delete('/:id', authenticate, (req, res) => {
+  const booking = getDb().prepare('SELECT id, user_id FROM bookings WHERE id = ?').get(req.params.id);
+
+  if (!booking) {
+    return res.status(404).json({ error: 'Booking not found' });
+  }
+
+  if (req.user.role !== 'admin' && booking.user_id !== req.user.id) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  getDb().prepare('DELETE FROM bookings WHERE id = ?').run(req.params.id);
+  res.json({ message: 'Booking deleted' });
 });
 
 module.exports = router;
